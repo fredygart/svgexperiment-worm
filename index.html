@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SVG Worm Experiment</title>
+<style>
+:root {
+--formTop: -352px;
+--shX: 0px;
+--shY: 0px;
+--shD: 0px;
+}
+body { margin: 0; font: 12px arial; }
+#mySVG{position: fixed; left: 0; top: 0; min-width: 100%; min-height: 100%; z-index: -100; }
+#form{position: fixed; right: 0px; }
+.hideForm{transition: top 0.5s; top: var(--formTop);}
+.hideForm:hover {top:0px;}
+#controls{background: #eee; padding: 20px; margin: 10px;}
+.aIcon{margin-top: 10px; margin-left: 220px;}
+#backgroundB{position:fixed;top:0px;left:0px;min-width: 100%;min-height: 100%; z-index: -1000;}
+#backgroundC{transition: 1s; position:fixed;top:0px;left:0px;min-width: 100%;min-height: 100%; z-index: -1000; opacity: 0;}
+
+.w3-btn,.w3-button{border:none;display:inline-block;padding:8px 8px;vertical-align:middle;overflow:hidden;text-decoration:none;color:inherit;background-color:inherit;text-align:center;cursor:pointer;white-space:nowrap}
+.w3-btn,.w3-button{-webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}
+.w3-button:hover{color:#000!important;background-color:#ccc!important}
+.w3-deep-orange,.w3-hover-deep-orange:hover{color:#fff!important;background-color:#ff5722!important}
+.w3-white,.w3-hover-white:hover{color:#000!important;background-color:#fff!important}
+.w3-round-large{border-radius:8px}.w3-round-xlarge{border-radius:16px}
+
+#divMeasure{position: fixed; top:0px; left:0px; min-width: 100%; min-height: 100%; z-index: -999;}
+.vl { border-left: 2px solid green; margin: 10px; }
+.shadow { -webkit-filter: drop-shadow( var(--shX) var(--shY) var(--shD) rgba(0, 0, 0, 1)); filter: drop-shadow( var(--shX) var(--shY) var(--shD) rgba(0, 0, 0, 1)); }
+#svgArrow{border: 1px solid #000;}
+.disableRBActive{color:#f50a39;cursor: pointer;}
+.disableRBInactive{color:#ddd;cursor: default;pointer-events: none;}
+#fullScreenBtn{cursor: pointer;}
+#fullScreenBtn:hover{width: 32px; height: 32px;}
+</style>
+</head>
+<body>
+<div id="form" class="">
+<div id="controls">
+<span style="color: #ff009d;"><b>Controls:</b></span><br>
+<span id="heavyTx">Light/Heavy[6]</span><input type="range" min="1" max="50" value="6" class="slider" id="heavy">
+<br><span id="heavyTx">Fast/Slow</span><input type="range" min="10" max="100" value="10" class="slider" id="speed">
+<hr>
+<span><b>Random Colors</b></span><br>
+<button id="rColor" class="w3-button w3-white w3-border w3-round-large" style="border: 1px solid #206eff;">Simple Color</button><span class="vl"></span>
+<button id="rGradA" class="w3-button w3-white w3-border w3-round-large" style="border: 1px solid #206eff;">Gradient</button>
+<br><button id="rGradS" class="w3-button w3-white w3-border w3-round-large" style="border: 1px solid #206eff;">Stepped Colors</button>
+<input type="number" min="1" max="10" value="4" class="slider" id="stepP" style="width:30px; margin: 4px;">
+<hr>
+<button id="rBackG" class="w3-button w3-white w3-border w3-round-large" style="border: 1px solid #206eff;">BG-Color</button>
+<button id="rBackGI" class="w3-button w3-white w3-border w3-round-large" style="border: 1px solid #206eff;">Random-BG-Image</button>
+<hr>
+<span><b>Shadows [SLOW]</b></span><br>
+<button id="rShadowsBttn" class="w3-button w3-white w3-border w3-round-large" style="border: 1px solid #206eff;">Random Shadow</button>
+<button id="rShadowsOff" class="w3-button w3-white w3-border w3-round-large" style="border: 1px solid #206eff;">turn off</button>
+
+<hr>
+<span><b>Move by: Mouse / Automatically</b></span><br>
+<button id="mMove" class="w3-button w3-white w3-border w3-round-large" style="border: 1px solid #206eff;">Mouse</button><span class="vl"></span>
+<button id="mAuto" class="w3-button w3-white w3-border w3-round-large" style="border: 1px solid #206eff;">Auto</button><span id="disableRB" class="disableRBInactive" style="margin-left: 4px;">Disable Random</span>
+<hr>
+<form>
+<span>Amount:</span><input id="amount" type="number" min="3" value="200"><br>
+<span>Size:</span><input id="cSize" type="number" min="1" value="100"><br>
+<label for="form">Choose Form:</label>
+<select name="form" id="formOp">
+<option value="Pointy">Pointy</option>
+<option value="Even">Even</option>
+</select>
+<br>
+<label for="form">Leader:</label>
+<select name="form" id="fbOp">
+<option value="Foreground">Foreground</option>
+<option value="Background">Background</option>
+</select>
+</form>
+<p>
+<button id="buildButton" class="w3-button w3-deep-orange">Build</button><span class="vl"></span><button id="randomBuildButton" class="w3-button w3-deep-orange">Random Build</button>
+<span class="vl"></span>
+<span style="display: inline-block;text-align: center;">
+<span style="font:10px arial;color:green;">Fullscreen</span><br>
+<svg id="fullScreenBtn" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72" width="20px" height="20px" style="vertical-align: text-top;" fill="crimson"><path d="M25 7H7v18l7-7 10 11 5-5-11-10zM47 7l7 7-11 10 5 5 10-11 7 7V7zM48 43l-5 5 11 10-7 7h18V47l-7 7zM24 43L14 54l-7-7v18h18l-7-7 11-10z"/><path d="M11 29h18V11l-7 7L12 7l-5 5 11 10zM61 29l-7-7 11-10-5-5-10 11-7-7v18zM60 65l5-5-11-10 7-7H43v18l7-7zM12 65l10-11 7 7V43H11l7 7L7 60z"/></svg>
+</span>
+</p>
+</div>
+<div id="arrowIcon" class="aIcon">
+<svg id="svgArrow" width="32" height="32" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 2048" fill="#afa"><path d="M1540 1025q0-27-18-45l-91-91q-18-18-45-18t-45 18l-189 189V576q0-26-19-45t-45-19H960q-26 0-45 19t-19 45v502L707 889q-19-19-45-19t-45 19l-91 91q-18 18-18 45t18 45l362 362 91 91q18 18 45 18t45-18l91-91 362-362q18-18 18-45zm252-1q0 209-103 385.5T1409.5 1689 1024 1792t-385.5-103T359 1409.5 256 1024t103-385.5T638.5 359 1024 256t385.5 103T1689 638.5t103 385.5z"/></svg>
+</div>
+</div>
+
+<svg id="mySVG" class="" width="1200" height="600"></svg>
+
+<div id="divMeasure"></div>
+
+<img src="" id="backgroundB">
+<img src="" id="backgroundC">
+
+<script>
+var mySVG = document.getElementById("mySVG");
+var heavy = document.getElementById("heavy");
+var speed = document.getElementById("speed");
+var form = document.getElementById("form");
+var formOp = document.getElementById("formOp");
+var fbOp = document.getElementById("fbOp");
+var amount = document.getElementById("amount");
+var cSize = document.getElementById("cSize");
+var buildButton = document.getElementById("buildButton");
+var randomBuildButton = document.getElementById("randomBuildButton");
+var mMove = document.getElementById("mMove");
+var mAuto = document.getElementById("mAuto");
+var mAutoTimer;
+var autoX = 100, autoY = 100, autoStepX = 1, autoStepY = 1, stepMultiply = 1;
+var cColor = "#"+Math.floor(Math.random()*16777215).toString(16);
+var divMeasure = document.getElementById("divMeasure");
+var randomTimer = false;
+var autoBoolean = false;
+var enableRandomBuild = false;
+var gradientBoolean = false;
+var stepP = document.getElementById("stepP");
+var backgroundB = document.getElementById("backgroundB");
+var backgroundC = document.getElementById("backgroundC");
+var disableRB = document.getElementById("disableRB");
+var cID = [];
+var cX = [];
+var cY = [];
+var dX = [];
+var dY = [];
+var dXD = [];
+var dYD = [];
+var timer;
+var rStyle = document.querySelector(':root');
+var imgIDs = ["Q1p7bh3SHj8","asuyh-_ZX54","yZygONrUBe8","oMpAz-DN-9I","uhjiu8FjnsQ","rCbdp8VCYhQ","Ef6iL87-vOA","c9OCWLka764","pd4lo70LdbI","dFA5XycbhoQ","Jztmx9yqjBw","9o-VrJSwGuw","oxgK2f_rxDc","XE2RmuV6ed0"];
+var allowRandomBuild = true;
+var elem = document.documentElement;
+var isFullscreen = false;
+
+build();
+randomColor();
+startMouseMove();
+randomGradientStepped();
+function build(){
+var pointySize = cSize.value / amount.value;
+(function(){
+for(var i=0;i<amount.value;i++){
+mySVG.insertAdjacentHTML((function(){return (fbOp.selectedIndex==0)?"afterbegin":"beforeend";})(), "<circle id='c"+i+"' r='"+(function(){return (formOp.selectedIndex == 0)?i*pointySize:cSize.value})()+"' cx='"+(i*(Math.floor(Math.random()*30)))+"' cy='"+(i*10)+"' fill='"+cColor+"' stroke='#222'></circle>");
+cID.push("c"+i);
+}
+})();
+timer = setInterval(timerFunction,speed.value);
+}
+
+mMove.onclick = function(){
+startMouseMove();
+clearInterval(mAutoTimer);
+randomTimer = false;
+enableRandomBuild = false;
+}
+
+mAuto.onclick = function(){
+document.body.removeEventListener("mousemove",functionMouseMove);
+bodyClientW = divMeasure.clientWidth +200;
+bodyClientH = divMeasure.clientHeight +200;
+randomTimer = true;
+enableRandomBuild = true;
+disableRB.setAttribute("class","disableRBActive");
+
+clearInterval(mAutoTimer);
+
+mAutoTimer = setInterval(function(){
+if (autoY>bodyClientH){ autoStepY = -1; stepMultiply = Math.floor(Math.random()*5); }
+if (autoY<-200){ autoStepY = 1; stepMultiply = Math.floor(Math.random()*5);}
+if (autoX>bodyClientW){ autoStepX = -1; stepMultiply = Math.floor(Math.random()*5);}
+if (autoX<-200){ autoStepX = 1; stepMultiply = Math.floor(Math.random()*5);}
+
+autoX += autoStepX * stepMultiply;
+autoY += autoStepY * stepMultiply;
+document.getElementById(cID[0]).setAttribute("cx", autoX);
+document.getElementById(cID[0]).setAttribute("cy", autoY);
+},10);
+}
+
+function startMouseMove(){document.body.addEventListener("mousemove",functionMouseMove);}
+function functionMouseMove(event) {
+var x = event.pageX;
+var y = event.pageY;
+document.getElementById(cID[0]).setAttribute("cx", x);
+document.getElementById(cID[0]).setAttribute("cy", y);
+}
+
+
+form.onclick = function(){
+document.getElementById("heavyTx").innerText = "Light/Heavy["+heavy.value+"]";
+form.setAttribute("class","hideForm");
+rStyleSet();
+}
+
+speed.onchange = function(){
+resetTimer();
+}
+
+buildButton.onclick = function(){
+newBuild();
+}
+
+randomBuildButton.onclick = function(){
+randomBuildF();
+allowRandomBuild = true;
+}
+
+disableRB.onclick = function(){
+this.setAttribute("class","disableRBInactive");
+enableRandomBuild = false;
+}
+
+function newBuild(){
+clearInterval(timer);
+mySVG.innerHTML = "";
+cID = [];
+cX = [];
+cY = [];
+dX = [];
+dY = [];
+dXD = [];
+dYD = [];
+build();
+if(gradientBoolean){
+randomGradientStepped();
+}
+}
+
+function randomBuildF(){
+amount.value = Math.floor(Math.random()* (200 - 4 + 1) + 4);
+cSize.value = Math.floor(Math.random()* (1000 - 10 + 1) + 10);
+newBuild();
+}
+
+amount.onchange = function(){
+if(this.value < 3){this.value = 3;}
+allowRandomBuild = false;
+}
+cSize.onchange = function(){
+if(this.value < 1){this.value = 1;}
+allowRandomBuild = false;
+}
+
+document.getElementById("rColor").onclick = function(){
+randomColor();
+}
+
+document.getElementById("rBackG").onclick = function(){
+randomBackground();
+backgroundB.style.display = "none";
+backgroundC.style.display = "none";
+}
+
+document.getElementById("rBackGI").onclick = function(){
+backgroundB.style.display = "block";
+backgroundC.style.display = "block";
+randomImageBG();
+}
+
+document.getElementById("rGradA").onclick = function(){
+randomGradientA();
+}
+
+document.getElementById("rGradS").onclick = function(){
+randomGradientStepped();
+}
+
+document.getElementById("rShadowsBttn").onclick = function(){
+mySVG.setAttribute("class","shadow");
+rShadow();
+}
+
+document.getElementById("rShadowsOff").onclick = function(){
+mySVG.removeAttribute("class","shadow");
+}
+
+document.getElementById("fullScreenBtn").onclick = function(){
+isFullscreen = !isFullscreen;
+(isFullscreen)?openFullscreen():closeFullscreen();
+}
+
+stepP.onchange = function(){
+randomGradientStepped();
+if(this.value < 1){this.value = 1;}
+}
+
+
+function timerFunction(){
+for(var i=0;i<cID.length;i++){
+cX[i] = Number(document.getElementById(cID[i]).getAttribute("cx"));
+cY[i] = Number(document.getElementById(cID[i]).getAttribute("cy"));
+}
+for(var ii=0;ii<cID.length;ii++){
+dX[ii] = Math.abs(cX[ii+1] - cX[ii]);
+dY[ii] = Math.abs(cY[ii+1] - cY[ii]);
+}
+for(var e=0;e<cID.length-1;e++){
+dXD[e] = (dX[e] / heavy.value);
+dYD[e] = (dY[e] / heavy.value);
+(cX[e] < cX[e+1]) ? document.getElementById(cID[e+1]).setAttribute("cx", cX[e+1] - dXD[e]) : document.getElementById(cID[e+1]).setAttribute("cx", cX[e+1] + dXD[e]);
+(cY[e] < cY[e+1]) ? document.getElementById(cID[e+1]).setAttribute("cy", cY[e+1] - dYD[e]) : document.getElementById(cID[e+1]).setAttribute("cy", cY[e+1] + dYD[e]);
+}
+}
+
+function resetTimer(){
+var timeValue = speed.value;
+clearInterval(timer);
+timer = setInterval(timerFunction,timeValue);
+}
+
+function randomColor(){
+var randomColorS = Math.floor(Math.random()*16777215).toString(16);
+for(var o=0;o<cID.length;o++){
+document.getElementById(cID[o]).setAttribute("fill", "#"+randomColorS);
+}
+cColor = "#"+randomColorS;
+gradientBoolean = false;
+}
+
+function randomGradientA(){
+gradientBoolean = true;
+var randomColorS = Math.floor(Math.random()*16777215);
+for(var o=0;o<cID.length;o++){
+document.getElementById(cID[o]).setAttribute("fill", "#"+(randomColorS+o).toString(17));
+}
+cColor = "#"+randomColorS;
+}
+
+function randomGradientStepped(){
+gradientBoolean = true;
+var randomColorS = Math.floor(Math.random()*16777215);
+for(var o=0;o<cID.length;o++){
+document.getElementById(cID[o]).setAttribute("fill", "#"+(randomColorS+o/stepP.value).toString(16));
+}
+cColor = "#"+randomColorS;
+}
+
+function randomBackground(){
+var randomColor = Math.floor(Math.random()*16777215).toString(16);
+document.body.style.background = "#"+randomColor;
+}
+
+var latestImgID;
+var actualImageBool = false;
+backgroundB.src = "https://source.unsplash.com/"+imgIDs[Math.floor(Math.random()*(imgIDs.length-1))]+"/1280x720";
+backgroundC.src = "https://source.unsplash.com/"+imgIDs[Math.floor(Math.random()*(imgIDs.length-1))]+"/1280x720";
+function randomImageBG(){
+actualImgID = imgIDs[Math.floor(Math.random()*(imgIDs.length-1))];
+if (actualImgID == latestImgID){
+randomImageBG();
+} else {
+latestImgID = actualImgID;
+switchBGImg();
+}
+}
+
+function switchBGImg(){
+if(actualImageBool){
+setTimeout(function(){backgroundC.src = "https://source.unsplash.com/"+actualImgID+"/1280x720";},1000);
+backgroundC.style.opacity = 0;
+actualImageBool = false;
+} else {
+setTimeout(function(){backgroundB.src = "https://source.unsplash.com/"+actualImgID+"/1280x720";},1000);
+backgroundC.style.opacity = 1;
+actualImageBool = true;
+}
+}
+
+function rStyleSet() {
+var formTopValueH = form.offsetHeight;
+rStyle.style.setProperty('--formTop', -(formTopValueH-45)+"px");
+}
+
+function rShadow() {
+var shadowX = Math.floor(Math.random()* (-30 - 30 + 1) + 30);
+var shadowY = Math.floor(Math.random()* (-30 - 30 + 1) + 30);
+var shadowD = Math.floor(Math.random()* (0 - 30 + 1) + 30);
+rStyle.style.setProperty('--shX', shadowX+"px");
+rStyle.style.setProperty('--shY', shadowY+"px");
+rStyle.style.setProperty('--shD', shadowD+"px");
+}
+
+setInterval(function(){
+var rrRandom = Math.floor(Math.random()* (5 - 2 + 1) + 2);
+var randomBuildN = Math.floor(Math.random()*2);
+if(randomTimer){
+heavy.value = Math.floor(Math.random()* (50 - 2 + 1) + 2);
+if(rrRandom==3){
+autoX = Math.floor(Math.random()*bodyClientW);
+autoY = Math.floor(Math.random()*bodyClientH);
+}
+}
+autoBoolean = !autoBoolean;
+if(autoBoolean == true && rrRandom == 3 && enableRandomBuild == true){
+randomBackground();
+if(gradientBoolean == false){
+randomColor();
+} else {randomGradientStepped();}
+}
+if(autoBoolean == true && rrRandom == 3 && randomBuildN == 0 && enableRandomBuild == true){
+if(allowRandomBuild == true){
+randomBuildF();
+randomImageBG();
+}
+}
+
+},3000);
+
+function openFullscreen() {
+if (elem.requestFullscreen) {
+elem.requestFullscreen();
+} else if (elem.webkitRequestFullscreen) {
+elem.webkitRequestFullscreen();
+} else if (elem.msRequestFullscreen) {
+elem.msRequestFullscreen();
+}
+}
+function closeFullscreen() {
+if (document.exitFullscreen) {
+document.exitFullscreen();
+} else if (document.webkitExitFullscreen) {
+document.webkitExitFullscreen();
+} else if (document.msExitFullscreen) {
+document.msExitFullscreen();
+}
+}
+</script>
+</body>
+</html>
