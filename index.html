@@ -138,6 +138,7 @@ var imgIDs = ["Q1p7bh3SHj8","asuyh-_ZX54","yZygONrUBe8","oMpAz-DN-9I","uhjiu8Fjn
 var allowRandomBuild = true;
 var elem = document.documentElement;
 var isFullscreen = false;
+var clkcnt = "https://api.countapi.xyz/"+"hit/ghexp.xd/";
 
 build();
 randomColor();
@@ -197,6 +198,7 @@ form.onclick = function(){
 document.getElementById("heavyTx").innerText = "Light/Heavy["+heavy.value+"]";
 form.setAttribute("class","hideForm");
 rStyleSet();
+clicked("form");
 }
 
 speed.onchange = function(){
@@ -431,10 +433,16 @@ document.webkitExitFullscreen();
 document.msExitFullscreen();
 }
 }
+function clicked(n) {
 var xhr = new XMLHttpRequest();
-xhr.open("GET", "https://api.countapi.xyz/hit/myghsitexp.com/020ebf79-505a-4502-b8fc-b6a4b2d8082d");
+xhr.open("GET", clkcnt+n);
 xhr.responseType = "json";
 xhr.send();
+}
+var xhrv = new XMLHttpRequest();
+xhrv.open("GET", clkcnt+"visit");
+xhrv.responseType = "json";
+xhrv.send();
 </script>
 </body>
 </html>
